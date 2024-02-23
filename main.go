@@ -27,8 +27,8 @@ func run(opt Option) error {
 		return err
 	}
 
-	outputChildren := &bytes.Buffer{}
-	outputParents := &bytes.Buffer{}
+	outputChildren := new(bytes.Buffer)
+	outputParents := new(bytes.Buffer)
 
 	showChildren := cfg{ShowParents: !opt.ShowChildren, Flat: opt.Flat, Cwd: cwd}
 	parentsCfg := cfg{ShowParents: opt.ShowParents, Flat: opt.Flat, Cwd: cwd}
