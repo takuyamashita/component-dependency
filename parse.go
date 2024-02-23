@@ -2,12 +2,13 @@ package main
 
 import (
 	"bytes"
-	"encoding/xml"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
+
+	"golang.org/x/net/html"
 )
 
 var (
@@ -88,20 +89,24 @@ func isIgnore(path string, info os.FileInfo) bool {
 
 func setScriptContent(content []byte, cmp *Component) error {
 
-	content = bytes.Join(
-		[][]byte{[]byte("<c>"), content, []byte("</c>")},
-		[]byte(""),
-	)
-
-	var c = &struct {
-		Script string `xml:"script"`
-	}{}
-	if err := xml.Unmarshal(content, c); err != nil {
+	node, err := html.Parse(bytes.NewReader(content))
+	if err != nil {
 		return err
 	}
 
-	cmp.Script = c.Script
+	var scriptContent string
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "script" {
+			scriptContent = n.FirstChild.Data
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(node)
 
+	cmp.Script = scriptContent
 	return nil
 }
 
