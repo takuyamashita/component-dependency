@@ -52,6 +52,14 @@ func run(opt Option) error {
 				WriteComponets(outputParents, component, 0, parentsCfg)
 			}
 		}
+
+		if outputChildren.Available() < 500 {
+			outputChildren.Grow(500)
+		}
+
+		if outputParents.Available() < 500 {
+			outputParents.Grow(500)
+		}
 	}
 
 	if opt.ShowChildren {
