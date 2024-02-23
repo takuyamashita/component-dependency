@@ -3,12 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
-
-	"github.com/pkg/errors"
 )
 
 var (
@@ -38,7 +37,7 @@ func Parse(cwd string, walk func(root string, fn filepath.WalkFunc) error) (Comp
 			return err
 		}
 		if err := setScriptContent(content, &cmp); err != nil {
-			return errors.Wrapf(err, "failed to set script content: %s", path)
+			return fmt.Errorf("failed to parse %s: %w", path, err)
 		}
 
 		for _, match := range re.FindAllStringSubmatch(string(cmp.Script), -1) {
