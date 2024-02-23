@@ -30,29 +30,25 @@ func run(opt Option) error {
 	outputChildren := new(bytes.Buffer)
 	outputParents := new(bytes.Buffer)
 
-	showChildren := cfg{ShowParents: !opt.ShowChildren, Flat: opt.Flat, Cwd: cwd}
+	childrenCfg := cfg{ShowParents: !opt.ShowChildren, Flat: opt.Flat, Cwd: cwd}
 	parentsCfg := cfg{ShowParents: opt.ShowParents, Flat: opt.Flat, Cwd: cwd}
 
 	if opt.Color {
-		showChildren.Color = Green
+		childrenCfg.Color = Green
 		parentsCfg.Color = Red
-	}
-
-	for _, c := range components.Sorted() {
-		fmt.Println(c.Path)
 	}
 
 	for _, component := range components.Sorted() {
 
 		if opt.IsShowAllTarget() {
-			WriteComponets(outputChildren, component, 0, showChildren)
+			WriteComponets(outputChildren, component, 0, childrenCfg)
 			WriteComponets(outputParents, component, 0, parentsCfg)
 			continue
 		}
 
 		for _, target := range opt.Targets {
 			if component.Path == filepath.Join(cwd, target) {
-				WriteComponets(outputChildren, component, 0, showChildren)
+				WriteComponets(outputChildren, component, 0, childrenCfg)
 				WriteComponets(outputParents, component, 0, parentsCfg)
 			}
 		}
