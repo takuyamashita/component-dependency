@@ -38,6 +38,10 @@ func run(opt Option) error {
 		parentsCfg.Color = Red
 	}
 
+	for _, c := range components.Sorted() {
+		fmt.Println(c.Path)
+	}
+
 	for _, component := range components.Sorted() {
 
 		if opt.IsShowAllTarget() {
@@ -51,14 +55,6 @@ func run(opt Option) error {
 				WriteComponets(outputChildren, component, 0, showChildren)
 				WriteComponets(outputParents, component, 0, parentsCfg)
 			}
-		}
-
-		if outputChildren.Available() < 500 {
-			outputChildren.Grow(500)
-		}
-
-		if outputParents.Available() < 500 {
-			outputParents.Grow(500)
 		}
 	}
 
