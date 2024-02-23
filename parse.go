@@ -31,7 +31,11 @@ func Parse(cwd string, walk func(root string, fn filepath.WalkFunc) error) (Comp
 			Parents:  []*Component{},
 		}
 
-		if err := setScriptContent(path, &cmp); err != nil {
+		content, err := ReadFile(path)
+		if err != nil {
+			return err
+		}
+		if err := setScriptContent(content, &cmp); err != nil {
 			return err
 		}
 
@@ -81,12 +85,7 @@ func isIgnore(path string, info os.FileInfo) bool {
 	return info.IsDir() || filepath.Ext(path) != ".vue"
 }
 
-func setScriptContent(path string, cmp *Component) error {
-
-	content, err := ReadFile(path)
-	if err != nil {
-		return err
-	}
+func setScriptContent(content []byte, cmp *Component) error {
 
 	content = bytes.Join(
 		[][]byte{[]byte("<c>"), content, []byte("</c>")},

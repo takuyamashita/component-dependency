@@ -118,3 +118,92 @@ func TestParse(t *testing.T) {
 		t.Errorf("unexpected length: %d", len(components))
 	}
 }
+
+func TestSetScriptContent(t *testing.T) {
+
+	type arg struct {
+		content []byte
+	}
+
+	// import defaultExport from "module-name";
+	// import * as name from "module-name";
+	// import { export1 } from "module-name";
+	// import { export1 as alias1 } from "module-name";
+	// import { default as alias } from "module-name";
+	// import { export1, export2 } from "module-name";
+	// import { export1, export2 as alias2, /* … */ } from "module-name";
+	// import { "string name" as alias } from "module-name";
+	// import defaultExport, { export1, /* … */ } from "module-name";
+	// import defaultExport, * as name from "module-name";
+
+	tests := []struct {
+		name string
+		arg  arg
+		want string
+	}{
+		{
+			name: "Default Export",
+			arg: arg{
+				content: []byte(`<script>import defaultExport from "module-name";</script>`),
+			},
+			want: `import defaultExport from "module-name";`,
+		},
+		{
+			name: "Namespace Import",
+			arg: arg{
+				content: []byte(`<script>import * as name from "module-name";</script>`),
+			},
+			want: `import * as name from "module-name";`,
+		},
+		{
+			name: "Named Import",
+			arg: arg{
+				content: []byte(`<script>import { export1 } from "module-name";</script>`),
+			},
+			want: `import { export1 } from "module-name";`,
+		},
+		{
+			name: "Named Import with Alias",
+			arg: arg{
+				content: []byte(`<script>import { export1 as alias1 } from "module-name";</script>`),
+			},
+			want: `import { export1 as alias1 } from "module-name";`,
+		},
+		{
+			name: "Default Import with Alias",
+			arg: arg{
+				content: []byte(`<script>import { default as alias } from "module-name";</script>`),
+			},
+			want: `import { default as alias } from "module-name";`,
+		},
+		{
+			name: "Multiple Named Import",
+			arg: arg{
+				content: []byte(`<script>import { export1, export2 } from "module-name";</script>`),
+			},
+			want: `import { export1, export2 } from "module-name";`,
+		},
+		{
+			name: "Multiple Named Import with Alias",
+			arg: arg{
+				content: []byte(`<script>import { export1, export2 as alias2 } from "module-name";</script>`),
+			},
+			want: `import { export1, export2 as alias2 } from "module-name";`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			cmp := &Component{}
+
+			if err := setScriptContent(tt.arg.content, cmp); err != nil {
+				t.Error(err)
+			}
+
+			if tt.want != cmp.Script {
+				t.Errorf("unexpected script: %s", cmp.Script)
+			}
+		})
+	}
+}
