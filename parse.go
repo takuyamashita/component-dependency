@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+
+	"github.com/pkg/errors"
 )
 
 var (
@@ -36,7 +38,7 @@ func Parse(cwd string, walk func(root string, fn filepath.WalkFunc) error) (Comp
 			return err
 		}
 		if err := setScriptContent(content, &cmp); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to set script content: %s", path)
 		}
 
 		for _, match := range re.FindAllStringSubmatch(string(cmp.Script), -1) {
