@@ -207,3 +207,211 @@ func TestSetScriptContent(t *testing.T) {
 		})
 	}
 }
+
+func TestSetDependencies(t *testing.T) {
+
+	components := Components{
+		"/AAA/Alice.vue": &Component{
+			Froms: []string{
+				"/AAA/BBB/Bard.vue",
+				"/BBB/Cat.vue",
+			},
+			Path: "/AAA/Alice.vue",
+		},
+		"/AAA/Bob.vue": &Component{
+			Froms: []string{},
+			Path:  "/AAA/Bob.vue",
+		},
+		"/AAA/Charile.vue": &Component{
+			Froms: []string{},
+			Path:  "/AAA/Charile.vue",
+		},
+
+		"/AAA/BBB/Bard.vue": &Component{
+			Froms: []string{
+				"/BBB/Bard.vue",
+				"/BBB/Cat.vue",
+				"/BBB/Dog.vue",
+			},
+			Path: "/AAA/BBB/Bard.vue",
+		},
+		"/AAA/BBB/Cat.vue": &Component{
+			Froms: []string{},
+			Path:  "/AAA/BBB/Cat.vue",
+		},
+		"/AAA/BBB/Dog.vue": &Component{
+			Froms: []string{},
+			Path:  "/AAA/BBB/Dog.vue",
+		},
+
+		"/BBB/Bard.vue": &Component{
+			Froms: []string{},
+			Path:  "/BBB/Bard.vue",
+		},
+		"/BBB/Cat.vue": &Component{
+			Froms: []string{},
+			Path:  "/BBB/Cat.vue",
+		},
+		"/BBB/Dog.vue": &Component{
+			Froms: []string{},
+			Path:  "/BBB/Dog.vue",
+		},
+		"/CCC/Bike.vue": &Component{
+			Froms: []string{
+				"/AAA/Alice.vue",
+				"/AAA/BBB/Bard.vue",
+			},
+			Path: "/CCC/Bike.vue",
+		},
+		"/CCC/Car.vue": &Component{
+			Froms: []string{},
+			Path:  "/CCC/Car.vue",
+		},
+		"/CCC/Train.vue": &Component{
+			Froms: []string{},
+			Path:  "/CCC/Train.vue",
+		},
+	}
+
+	setDependencies(components)
+
+	type want struct {
+		children []string
+		parents  []string
+	}
+
+	tests := []struct {
+		name string
+		want want
+	}{
+		{
+			name: "/AAA/Alice.vue",
+			want: want{
+				children: []string{
+					"/AAA/BBB/Bard.vue",
+					"/BBB/Cat.vue",
+				},
+				parents: []string{"/CCC/Bike.vue"},
+			},
+		},
+		{
+			name: "/AAA/Bob.vue",
+			want: want{
+				children: []string{},
+				parents:  []string{},
+			},
+		},
+		{
+			name: "/AAA/Charile.vue",
+			want: want{
+				children: []string{},
+				parents:  []string{},
+			},
+		},
+		{
+			name: "/AAA/BBB/Bard.vue",
+			want: want{
+				children: []string{"/BBB/Bard.vue", "/BBB/Cat.vue", "/BBB/Dog.vue"},
+				parents:  []string{"/AAA/Alice.vue", "/CCC/Bike.vue"},
+			},
+		},
+		{
+			name: "/AAA/BBB/Cat.vue",
+			want: want{
+
+				children: []string{},
+				parents:  []string{},
+			},
+		},
+		{
+			name: "/AAA/BBB/Dog.vue",
+			want: want{
+
+				children: []string{},
+				parents:  []string{},
+			},
+		},
+		{
+			name: "/BBB/Bard.vue",
+			want: want{
+				children: []string{},
+				parents: []string{
+					"/AAA/BBB/Bard.vue",
+				},
+			},
+		},
+		{
+			name: "/BBB/Cat.vue",
+			want: want{
+				children: []string{},
+				parents: []string{
+					"/AAA/Alice.vue",
+					"/AAA/BBB/Bard.vue",
+				},
+			},
+		},
+		{
+			name: "/BBB/Dog.vue",
+			want: want{
+				children: []string{},
+				parents: []string{
+					"/AAA/BBB/Bard.vue",
+				},
+			},
+		},
+		{
+			name: "/CCC/Bike.vue",
+			want: want{
+				children: []string{
+					"/AAA/Alice.vue",
+					"/AAA/BBB/Bard.vue",
+				},
+				parents: []string{},
+			},
+		},
+		{
+			name: "/CCC/Car.vue",
+			want: want{
+				children: []string{},
+				parents:  []string{},
+			},
+		},
+		{
+			name: "/CCC/Train.vue",
+			want: want{
+				children: []string{},
+				parents:  []string{},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			cmp := components[tt.name]
+
+			if len(cmp.Children) != len(tt.want.children) {
+				t.Fatalf("unexpected length: %d", len(cmp.Children))
+			}
+
+			for i, child := range cmp.Children {
+				if child.Path != tt.want.children[i] {
+					t.Errorf("unexpected child: %s", child.Path)
+				}
+			}
+
+			if len(cmp.Parents) != len(tt.want.parents) {
+				t.Fatalf("unexpected length: %d", len(cmp.Parents))
+			}
+
+			for i, parent := range cmp.Parents {
+
+				if parent.Path != tt.want.parents[i] {
+					t.Errorf("unexpected parent: %s", parent.Path)
+				}
+			}
+
+		})
+	}
+
+}
