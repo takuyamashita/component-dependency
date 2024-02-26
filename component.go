@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"sort"
-	"strings"
 )
 
 type Component struct {
@@ -57,7 +56,33 @@ type cfg struct {
 	Cwd         string
 }
 
-func WriteComponets(w io.Writer, cur *Component, depth int, cfg cfg) {
+func WriteComponets(
+	w io.Writer,
+
+	// Current component
+	cur *Component,
+
+	// How many children|parents base component has
+	groupCount int,
+
+	// Current component index on groupCount
+	index int,
+	depth int,
+
+	//
+	// | ← This is parasol
+	//
+	// This slice means that line of current component should render parasols
+	//
+	// ├── BBB/Dog.vue
+	// │   └── AAA/BBB/Bard.vue
+	// │       ├── AAA/Alice.vue
+	// │       │   └── CCC/Bike.vue
+	// ↑   ↑   ↑   ↑
+	// T   F   T   T
+	parasols []bool,
+	cfg cfg,
+) {
 
 	colorStart := cfg.Color
 	colorClose := colorEnd
@@ -66,22 +91,46 @@ func WriteComponets(w io.Writer, cur *Component, depth int, cfg cfg) {
 		colorClose = ""
 	}
 
-	indent := strings.Repeat("  ", depth)
+	indent := ""
+	for _, needParasol := range parasols {
+		if needParasol {
+			indent += "│   "
+			continue
+		}
+		indent += "    "
+	}
+
+	branch := "├── "
+	if groupCount == index+1 {
+		parasols = append(parasols, false)
+		branch = "└── "
+	} else {
+		parasols = append(parasols, true)
+	}
+
 	if cfg.Flat {
+		branch = ""
 		indent = ""
 	}
 
-	w.Write([]byte(fmt.Sprintf("%s%s%s%s\n", colorStart, indent, cur.Path[len(cfg.Cwd)+1:], colorClose)))
+	w.Write([]byte(fmt.Sprintf(
+		"%s%s%s%s%s\n",
+		indent,
+		branch,
+		colorStart,
+		cur.Path[len(cfg.Cwd)+1:],
+		colorClose,
+	)))
 
 	if cfg.ShowParents {
 
-		for _, dependent := range cur.Parents {
-			WriteComponets(w, dependent, depth+1, cfg)
+		for i, dependent := range cur.Parents {
+			WriteComponets(w, dependent, len(cur.Parents), i, depth+1, parasols, cfg)
 		}
 		return
 	}
 
-	for _, dependent := range cur.Children {
-		WriteComponets(w, dependent, depth+1, cfg)
+	for i, dependent := range cur.Children {
+		WriteComponets(w, dependent, len(cur.Children), i, depth+1, parasols, cfg)
 	}
 }

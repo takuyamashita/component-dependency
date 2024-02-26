@@ -38,18 +38,18 @@ func run(opt Option) error {
 		parentsCfg.Color = Red
 	}
 
-	for _, component := range components.Sorted() {
+	for i, component := range components.Sorted() {
 
 		if opt.IsShowAllTarget() {
-			WriteComponets(outputChildren, component, 0, childrenCfg)
-			WriteComponets(outputParents, component, 0, parentsCfg)
+			WriteComponets(outputChildren, component, len(components), i, 0, []bool{}, childrenCfg)
+			WriteComponets(outputParents, component, len(components), i, 0, []bool{}, parentsCfg)
 			continue
 		}
 
 		for _, target := range opt.Targets {
 			if component.Path == filepath.Join(cwd, target) {
-				WriteComponets(outputChildren, component, 0, childrenCfg)
-				WriteComponets(outputParents, component, 0, parentsCfg)
+				WriteComponets(outputChildren, component, len(components), i, 0, []bool{}, childrenCfg)
+				WriteComponets(outputParents, component, len(components), i, 0, []bool{}, parentsCfg)
 			}
 		}
 	}
